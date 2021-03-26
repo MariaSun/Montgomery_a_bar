@@ -4,6 +4,24 @@ from LightPipes import *
 import matplotlib
 import matplotlib.pyplot as plt
 
+def pad_with(vector, pad_width, iaxis, kwargs):
+	pad_value = kwargs.get('padder', 10)
+	vector[:pad_width[0]] = pad_value
+	vector[-pad_width[1]:] = pad_value
+
+def expand_mask(list, index):
+	list_size = len(list)
+	size=list_size*index
+	res = np.zeros((size, size))
+
+	for i in range(0,list_size):
+		for j in range(0,list_size):
+			for ii in range(0,index):
+				for jj in range(0,index):
+					res[i*index+ii,j*index+jj]=list[i,j]
+
+	return res
+
 def get_middle(list):
 	dim = math.floor(len(list)/2)
 	return dim
@@ -55,7 +73,7 @@ def bypixel_mask(F, mask):
 
 	for i in range(len(mask)):
 			for j in range(len(mask)):
-				F1.field[i,j] = M[i,j]
+				F1.field[i,j] = F1.field[i,j] + M[i,j]
 
 	F_res = F1
 

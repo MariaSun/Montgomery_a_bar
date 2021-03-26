@@ -8,10 +8,23 @@ from math import sqrt
 from SLM_mask import SLM_mask
 from SLM_mask import get_middle
 from SLM_mask import bypixel_mask
+from SLM_mask import expand_mask
+from SLM_mask import pad_with
+import cv2
 
 #import masks
-mask1=np.loadtxt("mask1_0111010_2.txt", delimiter=',')
+gauss_parameter = 5#has to be an odd number
+
+mask1=np.loadtxt("mask1_0111010_2.txt", delimiter=',')#mask1_0111010_2.txt  #mask1_0100010
+mask1=expand_mask(mask1,6)#replaces each pixel with an NXN superpixel
+mask1 = np.pad(mask1, 20, pad_with, padder=0.)
+mask1 = np.pad(mask1, (1, 0), 'constant', constant_values=(0., 0.))
+mask1 = cv2.GaussianBlur(mask1,(gauss_parameter,gauss_parameter),0)
 mask2=np.loadtxt("mask2_0111010_2.txt", delimiter=',')
+mask2=expand_mask(mask2,6)#replaces each pixel with an NXN superpixel
+mask2 = np.pad(mask2, 20, pad_with, padder=0.)
+mask2 = np.pad(mask2, (1, 0), 'constant', constant_values=(0., 0.))
+mask2 = cv2.GaussianBlur(mask2,(gauss_parameter,gauss_parameter),0)
 
 #assign size
 if len(mask1)!=len(mask1[0]) or len(mask2)!=len(mask2[0]):
@@ -21,7 +34,7 @@ if len(mask1)!=len(mask1[0]) and len(mask2)!=len(mask2[0]) and len(mask1) != len
 	print("Error, dimensions of mask1 != mask2. Suppy equal dimentions.")
 
 GridDimension = len(mask1)
-GridSize = 50*um
+GridSize = 5*mm
 R = GridSize/GridDimension
 
 lambda_ = 650*nm #lambda_ is used because lambda is a Python build-in function.
@@ -41,8 +54,10 @@ Field2.field = - Field2.field
 Field3 = BeamMix(Field1, Field2)
 
 #Ideal thing lens
-Field3 = Lens(6*cm,0,0,Field3)
-Field3 = Forward(Field3, 4.5*cm, 10*mm, 20)
+focal_distance = 20*cm#300*cm for 1X1 size mapping
+Field3 = Lens(focal_distance,0,0,Field3)
+
+Field3 = Forward(Field3, focal_distance, 0.5*mm, 300)
 
 I3=Intensity(0, Field3)
 
